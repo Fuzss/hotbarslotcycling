@@ -23,10 +23,10 @@
 
   "entrypoints": {
     "main": [
-      "${mainEntryPoint}"
+      "${modGroup}.fabric.impl.HotbarSlotCyclingFabric"
     ],
     "client": [
-      "${clientEntryPoint}"
+      "${modGroup}.fabric.impl.client.HotbarSlotCyclingFabricClient"
     ]
   },
 
