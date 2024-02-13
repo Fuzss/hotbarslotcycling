@@ -1,6 +1,7 @@
 package fuzs.hotbarslotcycling.impl.client.handler;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import fuzs.hotbarslotcycling.api.v1.client.CyclingSlotsRenderer;
 import fuzs.hotbarslotcycling.api.v1.client.SlotCyclingProvider;
 import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.config.ClientConfig;
@@ -13,11 +14,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-public class SlotsRendererHandler {
+import java.util.Objects;
+
+public final class SlotsRendererHandler implements CyclingSlotsRenderer {
     private static final ResourceLocation HOTBAR_SPRITE = new ResourceLocation("hud/hotbar");
     private static final ResourceLocation HOTBAR_SELECTION_SPRITE = new ResourceLocation("hud/hotbar_selection");
     private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = new ResourceLocation("hud/hotbar_offhand_left");
     private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = new ResourceLocation("hud/hotbar_offhand_right");
+
+    private static CyclingSlotsRenderer instance = new SlotsRendererHandler();
 
     public static void onRenderGui(Minecraft minecraft, GuiGraphics guiGraphics, float partialTicks, int screenWidth, int screenHeight) {
 
@@ -29,20 +34,28 @@ public class SlotsRendererHandler {
                 if (provider != null) {
 
                     ItemStack forwardStack = provider.getForwardStack();
+                    ItemStack selectedStack = provider.getSelectedStack();
                     ItemStack backwardStack = provider.getBackwardStack();
-                    if (!forwardStack.isEmpty() && !backwardStack.isEmpty()) {
-
-                        ItemStack selectedStack = provider.getSelectedStack();
-                        renderAdditionalSlots(guiGraphics, partialTicks, screenWidth, screenHeight, minecraft.font, (Player) minecraft.getCameraEntity(), backwardStack, selectedStack, forwardStack);
-                    }
+                    CyclingSlotsRenderer.getSlotsRenderer().renderSlots(guiGraphics, screenWidth, screenHeight, partialTicks, minecraft.font, (Player) minecraft.getCameraEntity(), backwardStack, selectedStack, forwardStack);
                 }
             }
         }
     }
 
-    private static void renderAdditionalSlots(GuiGraphics guiGraphics, float partialTicks, int screenWidth, int screenHeight, Font font, Player player, ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
+    public static void setSlotsRenderer(CyclingSlotsRenderer slotsRenderer) {
+        Objects.requireNonNull(slotsRenderer, "slots renderer is null");
+        SlotsRendererHandler.instance = slotsRenderer;
+    }
 
-        if (forwardStack.isEmpty() || backwardStack.isEmpty()) return;
+    public static CyclingSlotsRenderer getSlotsRenderer() {
+        return instance;
+    }
+
+    @Override
+    public void renderSlots(GuiGraphics guiGraphics, int screenWidth, int screenHeight, float partialTick, Font font, Player player, ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
+
+        if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState == ClientConfig.SlotsDisplayState.NEVER) return;
+        if (!this.testValidStacks(backwardStack, selectedStack, forwardStack)) return;
 
         boolean renderToRight = player.getMainArm().getOpposite() == HumanoidArm.LEFT;
 
@@ -57,14 +70,24 @@ public class SlotsRendererHandler {
         int posX = screenWidth / 2 + (91 + HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsXOffset) * (renderToRight ? 1 : -1);
         int posY = screenHeight - HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsYOffset;
         if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState == ClientConfig.SlotsDisplayState.KEY) {
-            posY += (screenHeight - posY + 23) * (1.0F - Math.min(1.0F, (CyclingInputHandler.getSlotsDisplayTicks() - partialTicks) / 5.0F));
+            if (CyclingInputHandler.getSlotsDisplayTicks() > 0) {
+                posY += (int) ((screenHeight - posY + 23) * (1.0F - Math.min(1.0F, (CyclingInputHandler.getSlotsDisplayTicks() - partialTick) / 5.0F)));
+            } else {
+                return;
+            }
         }
 
-        renderSlotBackgrounds(guiGraphics, posX, posY, !forwardStack.isEmpty(), !backwardStack.isEmpty(), renderToRight);
-        renderSlotItems(partialTicks, posX, posY - (16 + 3), font, guiGraphics, player, selectedStack, forwardStack, backwardStack, renderToRight);
+        this.renderSlotBackgrounds(guiGraphics, posX, posY, !forwardStack.isEmpty(), !backwardStack.isEmpty(), renderToRight);
+        this.renderSlotItems(guiGraphics, posX, posY - (16 + 3), partialTick, font, player, selectedStack, forwardStack, backwardStack, renderToRight);
     }
 
-    private static void renderSlotBackgrounds(GuiGraphics guiGraphics, int posX, int posY, boolean renderForwardStack, boolean renderBackwardStack, boolean renderToRight) {
+    @Override
+    public boolean testValidStacks(ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
+        return !backwardStack.isEmpty() && !selectedStack.isEmpty() && !forwardStack.isEmpty();
+    }
+
+    @Override
+    public void renderSlotBackgrounds(GuiGraphics guiGraphics, int posX, int posY, boolean renderForwardStack, boolean renderBackwardStack, boolean renderToRight) {
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -83,6 +106,7 @@ public class SlotsRendererHandler {
 
             // center slot cycling slot, we use the second hotbar slot for that
             // the hotbar sprite can only be rendered as a whole, so enable scissor to only get what we want
+            // alternative to scissor without providing a dedicated texture would be to dynamically copy part of the vanilla hotbar texture using a runtime resource pack
             guiGraphics.enableScissor(posX + 28, posY - 22, posX + 28 + 20, posY - 22 + 22);
             guiGraphics.blitSprite(HOTBAR_SPRITE, posX + 28 - 21, posY - 22, 182, 22);
             guiGraphics.disableScissor();
@@ -100,6 +124,7 @@ public class SlotsRendererHandler {
             guiGraphics.blitSprite(HOTBAR_OFFHAND_LEFT_SPRITE, posX - 29, posY - 23, 29, 24);
             // center slot cycling slot, we use the second hotbar slot for that
             // the hotbar sprite can only be rendered as a whole, so enable scissor to only get what we want
+            // alternative to scissor without providing a dedicated texture would be to dynamically copy part of the vanilla hotbar texture using a runtime resource pack
             guiGraphics.enableScissor(posX - 29 - 19, posY - 22, posX - 29 - 19 + 20, posY - 22 + 22);
             guiGraphics.blitSprite(HOTBAR_SPRITE, posX - 29 - 19 - 21, posY - 22, 182, 22);
             guiGraphics.disableScissor();
@@ -108,26 +133,28 @@ public class SlotsRendererHandler {
         }
     }
 
-    private static void renderSlotItems(float partialTicks, int posX, int posY, Font font, GuiGraphics guiGraphics, Player player, ItemStack selectedStack, ItemStack forwardStack, ItemStack backwardStack, boolean renderToRight) {
+    @Override
+    public void renderSlotItems(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack selectedStack, ItemStack forwardStack, ItemStack backwardStack, boolean renderToRight) {
 
         if (renderToRight) {
 
-            renderItemInSlot(font, guiGraphics, posX + 10, posY, partialTicks, player, backwardStack);
-            renderItemInSlot(font, guiGraphics, posX + 10 + 20, posY, partialTicks, player, selectedStack);
-            renderItemInSlot(font, guiGraphics, posX + 10 + 20 + 20, posY, partialTicks, player, forwardStack);
+            this.renderItemInSlot(guiGraphics, posX + 10, posY, partialTick, font, player, backwardStack);
+            this.renderItemInSlot(guiGraphics, posX + 10 + 20, posY, partialTick, font, player, selectedStack);
+            this.renderItemInSlot(guiGraphics, posX + 10 + 20 + 20, posY, partialTick, font, player, forwardStack);
         } else {
 
-            renderItemInSlot(font, guiGraphics, posX - 26, posY, partialTicks, player, forwardStack);
-            renderItemInSlot(font, guiGraphics, posX - 26 - 20, posY, partialTicks, player, selectedStack);
-            renderItemInSlot(font, guiGraphics, posX - 26 - 20 - 20, posY, partialTicks, player, backwardStack);
+            this.renderItemInSlot(guiGraphics, posX - 26, posY, partialTick, font, player, forwardStack);
+            this.renderItemInSlot(guiGraphics, posX - 26 - 20, posY, partialTick, font, player, selectedStack);
+            this.renderItemInSlot(guiGraphics, posX - 26 - 20 - 20, posY, partialTick, font, player, backwardStack);
         }
     }
 
-    private static void renderItemInSlot(Font font, GuiGraphics guiGraphics, int posX, int posY, float tickDelta, Player player, ItemStack stack) {
+    @Override
+    public void renderItemInSlot(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack stack) {
 
         if (!stack.isEmpty()) {
 
-            float popTime = CyclingInputHandler.getGlobalPopTime() - tickDelta;
+            float popTime = CyclingInputHandler.getGlobalPopTime() - partialTick;
             if (popTime > 0.0F) {
 
                 float f1 = 1.0F + popTime / 5.0F;
