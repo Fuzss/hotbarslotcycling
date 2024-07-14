@@ -2,17 +2,17 @@ package fuzs.hotbarslotcycling.neoforge.impl.client;
 
 import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.client.HotbarSlotCyclingClient;
+import fuzs.hotbarslotcycling.impl.data.client.ModLanguageProvider;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
+import fuzs.puzzleslib.neoforge.api.data.v2.core.DataProviderHelper;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 
-@Mod.EventBusSubscriber(modid = HotbarSlotCycling.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@Mod(value = HotbarSlotCycling.MOD_ID, dist = Dist.CLIENT)
 public class HotbarSlotCyclingNeoForgeClient {
 
-    @SubscribeEvent
-    public static void onConstructMod(final FMLConstructModEvent evt) {
+    public HotbarSlotCyclingNeoForgeClient() {
         ClientModConstructor.construct(HotbarSlotCycling.MOD_ID, HotbarSlotCyclingClient::new);
+        DataProviderHelper.registerDataProviders(HotbarSlotCycling.MOD_ID, ModLanguageProvider::new);
     }
 }

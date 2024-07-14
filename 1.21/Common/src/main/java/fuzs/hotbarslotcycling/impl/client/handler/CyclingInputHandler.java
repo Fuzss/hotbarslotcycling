@@ -6,6 +6,7 @@ import fuzs.hotbarslotcycling.api.v1.client.SlotCyclingProvider;
 import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.config.ClientConfig;
 import fuzs.hotbarslotcycling.impl.config.ModifierKey;
+import fuzs.puzzleslib.api.client.key.v1.KeyMappingHelper;
 import fuzs.puzzleslib.api.event.v1.core.EventResult;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -18,13 +19,10 @@ import net.minecraft.world.item.ItemStack;
 import java.util.function.Predicate;
 
 public class CyclingInputHandler {
-    public static final String KEY_CATEGORY = "key.categories." + HotbarSlotCycling.MOD_ID;
-    public static final KeyMapping CYCLE_LEFT_KEY_MAPPING = new KeyMapping("key.cycleLeft", InputConstants.KEY_G,
-            KEY_CATEGORY
-    );
-    public static final KeyMapping CYCLE_RIGHT_KEY_MAPPING = new KeyMapping("key.cycleRight", InputConstants.KEY_H,
-            KEY_CATEGORY
-    );
+    public static final KeyMapping CYCLE_LEFT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
+            "key_left"), InputConstants.KEY_G);
+    public static final KeyMapping CYCLE_RIGHT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
+            "key_right"), InputConstants.KEY_H);
     private static final int DEFAULT_SLOTS_DISPLAY_TICKS = 15;
 
     private static int slotsDisplayTicks;
@@ -32,8 +30,11 @@ public class CyclingInputHandler {
 
     public static EventResult onBeforeMouseScroll(boolean leftDown, boolean middleDown, boolean rightDown, double horizontalAmount, double verticalAmount) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (!((Player) minecraft.player).isSpectator() && HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
-            double accumulatedScroll = minecraft.mouseHandler.accumulatedScrollY == 0 ? -minecraft.mouseHandler.accumulatedScrollX : minecraft.mouseHandler.accumulatedScrollY;
+        if (!((Player) minecraft.player).isSpectator() &&
+                HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
+            double accumulatedScroll = minecraft.mouseHandler.accumulatedScrollY == 0 ?
+                    -minecraft.mouseHandler.accumulatedScrollX :
+                    minecraft.mouseHandler.accumulatedScrollY;
             double totalScroll = verticalAmount + accumulatedScroll;
             if (totalScroll > 0.0) {
                 if (cycleSlot(minecraft, minecraft.player, SlotCyclingProvider::cycleSlotBackward)) {
@@ -80,7 +81,10 @@ public class CyclingInputHandler {
             boolean forward = !scrollingModifierKey.isKey() || !scrollingModifierKey.isActive();
             for (int i = 0; i < options.keyHotbarSlots.length; i++) {
                 while (i == player.getInventory().selected && options.keyHotbarSlots[i].consumeClick()) {
-                    cycleSlot(minecraft, player, forward ? SlotCyclingProvider::cycleSlotForward : SlotCyclingProvider::cycleSlotBackward);
+                    cycleSlot(minecraft,
+                            player,
+                            forward ? SlotCyclingProvider::cycleSlotForward : SlotCyclingProvider::cycleSlotBackward
+                    );
                 }
             }
         }

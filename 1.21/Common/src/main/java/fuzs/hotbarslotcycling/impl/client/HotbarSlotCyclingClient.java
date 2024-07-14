@@ -8,7 +8,7 @@ import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.KeyMappingsContext;
 import fuzs.puzzleslib.api.client.event.v1.ClientTickEvents;
 import fuzs.puzzleslib.api.client.event.v1.InputEvents;
-import fuzs.puzzleslib.api.client.event.v1.renderer.RenderGuiCallback;
+import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiCallback;
 import fuzs.puzzleslib.api.client.key.v1.KeyActivationContext;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 
@@ -16,10 +16,10 @@ public class HotbarSlotCyclingClient implements ClientModConstructor {
 
     @Override
     public void onConstructMod() {
-        registerHandlers();
+        registerEventHandlers();
     }
 
-    private static void registerHandlers() {
+    private static void registerEventHandlers() {
         ClientTickEvents.START.register(CyclingInputHandler::onClientTick$Start);
         InputEvents.BEFORE_MOUSE_SCROLL.register(CyclingInputHandler::onBeforeMouseScroll);
         RenderGuiCallback.EVENT.register(SlotsRendererHandler::onRenderGui);

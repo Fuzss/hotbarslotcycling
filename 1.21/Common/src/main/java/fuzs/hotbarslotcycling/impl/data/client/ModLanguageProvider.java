@@ -13,7 +13,7 @@ public class ModLanguageProvider extends AbstractLanguageProvider {
 
     @Override
     public void addTranslations(TranslationBuilder builder) {
-        builder.add(CyclingInputHandler.KEY_CATEGORY, HotbarSlotCycling.MOD_NAME);
+        builder.addKeyCategory(HotbarSlotCycling.MOD_ID, HotbarSlotCycling.MOD_NAME);
         builder.add(CyclingInputHandler.CYCLE_LEFT_KEY_MAPPING, "Cycle Hotbar Slot Left");
         builder.add(CyclingInputHandler.CYCLE_RIGHT_KEY_MAPPING, "Cycle Hotbar Slot Right");
     }

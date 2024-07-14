@@ -5,6 +5,8 @@ import fuzs.hotbarslotcycling.api.v1.client.CyclingSlotsRenderer;
 import fuzs.hotbarslotcycling.api.v1.client.SlotCyclingProvider;
 import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.config.ClientConfig;
+import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,14 +19,17 @@ import net.minecraft.world.level.GameType;
 import java.util.Objects;
 
 public final class SlotsRendererHandler implements CyclingSlotsRenderer {
-    private static final ResourceLocation HOTBAR_SPRITE = new ResourceLocation("hud/hotbar");
-    private static final ResourceLocation HOTBAR_SELECTION_SPRITE = new ResourceLocation("hud/hotbar_selection");
-    private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = new ResourceLocation("hud/hotbar_offhand_left");
-    private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = new ResourceLocation("hud/hotbar_offhand_right");
+    private static final ResourceLocation HOTBAR_SPRITE = ResourceLocationHelper.withDefaultNamespace("hud/hotbar");
+    private static final ResourceLocation HOTBAR_SELECTION_SPRITE = ResourceLocationHelper.withDefaultNamespace(
+            "hud/hotbar_selection");
+    private static final ResourceLocation HOTBAR_OFFHAND_LEFT_SPRITE = ResourceLocationHelper.withDefaultNamespace(
+            "hud/hotbar_offhand_left");
+    private static final ResourceLocation HOTBAR_OFFHAND_RIGHT_SPRITE = ResourceLocationHelper.withDefaultNamespace(
+            "hud/hotbar_offhand_right");
 
     private static CyclingSlotsRenderer instance = new SlotsRendererHandler();
 
-    public static void onRenderGui(Minecraft minecraft, GuiGraphics guiGraphics, float partialTicks, int screenWidth, int screenHeight) {
+    public static void onRenderGui(Minecraft minecraft, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
 
         if (!minecraft.options.hideGui && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR) {
 
@@ -36,7 +41,17 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
                     ItemStack forwardStack = provider.getForwardStack();
                     ItemStack selectedStack = provider.getSelectedStack();
                     ItemStack backwardStack = provider.getBackwardStack();
-                    CyclingSlotsRenderer.getSlotsRenderer().renderSlots(guiGraphics, screenWidth, screenHeight, partialTicks, minecraft.font, (Player) minecraft.getCameraEntity(), backwardStack, selectedStack, forwardStack);
+                    CyclingSlotsRenderer.getSlotsRenderer()
+                            .renderSlots(guiGraphics,
+                                    guiGraphics.guiWidth(),
+                                    guiGraphics.guiHeight(),
+                                    deltaTracker.getGameTimeDeltaPartialTick(false),
+                                    minecraft.font,
+                                    (Player) minecraft.getCameraEntity(),
+                                    backwardStack,
+                                    selectedStack,
+                                    forwardStack
+                            );
                 }
             }
         }
@@ -54,8 +69,13 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
     @Override
     public void renderSlots(GuiGraphics guiGraphics, int screenWidth, int screenHeight, float partialTick, Font font, Player player, ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
 
-        if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState == ClientConfig.SlotsDisplayState.NEVER) return;
-        if (!CyclingSlotsRenderer.getSlotsRenderer().testValidStacks(backwardStack, selectedStack, forwardStack)) return;
+        if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState ==
+                ClientConfig.SlotsDisplayState.NEVER) {
+            return;
+        }
+        if (!CyclingSlotsRenderer.getSlotsRenderer().testValidStacks(backwardStack, selectedStack, forwardStack)) {
+            return;
+        }
 
         boolean renderToRight = player.getMainArm().getOpposite() == HumanoidArm.LEFT;
 
@@ -67,18 +87,38 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
             }
         }
 
-        int posX = screenWidth / 2 + (91 + HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsXOffset) * (renderToRight ? 1 : -1);
+        int posX = screenWidth / 2 +
+                (91 + HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsXOffset) * (renderToRight ? 1 : -1);
         int posY = screenHeight - HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsYOffset;
         if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState == ClientConfig.SlotsDisplayState.KEY) {
             if (CyclingInputHandler.getSlotsDisplayTicks() > 0) {
-                posY += (int) ((screenHeight - posY + 23) * (1.0F - Math.min(1.0F, (CyclingInputHandler.getSlotsDisplayTicks() - partialTick) / 5.0F)));
+                posY += (int) ((screenHeight - posY + 23) *
+                        (1.0F - Math.min(1.0F, (CyclingInputHandler.getSlotsDisplayTicks() - partialTick) / 5.0F)));
             } else {
                 return;
             }
         }
 
-        CyclingSlotsRenderer.getSlotsRenderer().renderSlotBackgrounds(guiGraphics, posX, posY, !forwardStack.isEmpty(), !backwardStack.isEmpty(), renderToRight);
-        CyclingSlotsRenderer.getSlotsRenderer().renderSlotItems(guiGraphics, posX, posY - (16 + 3), partialTick, font, player, selectedStack, forwardStack, backwardStack, renderToRight);
+        CyclingSlotsRenderer.getSlotsRenderer()
+                .renderSlotBackgrounds(guiGraphics,
+                        posX,
+                        posY,
+                        !forwardStack.isEmpty(),
+                        !backwardStack.isEmpty(),
+                        renderToRight
+                );
+        CyclingSlotsRenderer.getSlotsRenderer()
+                .renderSlotItems(guiGraphics,
+                        posX,
+                        posY - (16 + 3),
+                        partialTick,
+                        font,
+                        player,
+                        selectedStack,
+                        forwardStack,
+                        backwardStack,
+                        renderToRight
+                );
     }
 
     @Override
@@ -138,14 +178,20 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
 
         if (renderToRight) {
 
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX + 10, posY, partialTick, font, player, backwardStack);
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX + 10 + 20, posY, partialTick, font, player, selectedStack);
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX + 10 + 20 + 20, posY, partialTick, font, player, forwardStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX + 10, posY, partialTick, font, player, backwardStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX + 10 + 20, posY, partialTick, font, player, selectedStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX + 10 + 20 + 20, posY, partialTick, font, player, forwardStack);
         } else {
 
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX - 26, posY, partialTick, font, player, forwardStack);
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX - 26 - 20, posY, partialTick, font, player, selectedStack);
-            CyclingSlotsRenderer.getSlotsRenderer().renderItemInSlot(guiGraphics, posX - 26 - 20 - 20, posY, partialTick, font, player, backwardStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX - 26, posY, partialTick, font, player, forwardStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX - 26 - 20, posY, partialTick, font, player, selectedStack);
+            CyclingSlotsRenderer.getSlotsRenderer()
+                    .renderItemInSlot(guiGraphics, posX - 26 - 20 - 20, posY, partialTick, font, player, backwardStack);
         }
     }
 
