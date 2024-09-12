@@ -28,7 +28,7 @@ public class CyclingInputHandler {
     private static int slotsDisplayTicks;
     private static int globalPopTime;
 
-    public static EventResult onBeforeMouseScroll(boolean leftDown, boolean middleDown, boolean rightDown, double horizontalAmount, double verticalAmount) {
+    public static EventResult onMouseScroll(boolean leftDown, boolean middleDown, boolean rightDown, double horizontalAmount, double verticalAmount) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!((Player) minecraft.player).isSpectator() &&
                 HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
@@ -49,7 +49,7 @@ public class CyclingInputHandler {
         return EventResult.PASS;
     }
 
-    public static void onClientTick$Start(Minecraft minecraft) {
+    public static void onStartClientTick(Minecraft minecraft) {
         if (slotsDisplayTicks > 0) slotsDisplayTicks--;
         if (globalPopTime > 0) globalPopTime--;
         if (minecraft.player != null && !minecraft.player.isSpectator()) {

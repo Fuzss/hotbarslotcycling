@@ -11,6 +11,7 @@ import fuzs.puzzleslib.api.client.event.v1.InputEvents;
 import fuzs.puzzleslib.api.client.event.v1.gui.RenderGuiCallback;
 import fuzs.puzzleslib.api.client.key.v1.KeyActivationContext;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
+import net.minecraft.world.entity.player.Player;
 
 public class HotbarSlotCyclingClient implements ClientModConstructor {
 
@@ -20,15 +21,17 @@ public class HotbarSlotCyclingClient implements ClientModConstructor {
     }
 
     private static void registerEventHandlers() {
-        ClientTickEvents.START.register(CyclingInputHandler::onClientTick$Start);
-        InputEvents.BEFORE_MOUSE_SCROLL.register(CyclingInputHandler::onBeforeMouseScroll);
+        ClientTickEvents.START.register(CyclingInputHandler::onStartClientTick);
+        InputEvents.MOUSE_SCROLL.register(CyclingInputHandler::onMouseScroll);
         RenderGuiCallback.EVENT.register(SlotsRendererHandler::onRenderGui);
     }
 
     @Override
     public void onClientSetup() {
         if (ModLoaderEnvironment.INSTANCE.isDevelopmentEnvironment()) {
-            SlotCyclingProvider.registerProvider(player -> new HotbarCyclingProvider(player.getInventory()));
+            SlotCyclingProvider.registerProvider((Player player) -> {
+                return new HotbarCyclingProvider(player.getInventory());
+            });
         }
     }
 
