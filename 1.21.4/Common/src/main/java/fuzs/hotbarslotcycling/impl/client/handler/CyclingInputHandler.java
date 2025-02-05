@@ -20,11 +20,9 @@ import java.util.function.Predicate;
 
 public class CyclingInputHandler {
     public static final KeyMapping CYCLE_LEFT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
-            "key_left"), InputConstants.KEY_G
-    );
+            "cycle_left"), InputConstants.KEY_G);
     public static final KeyMapping CYCLE_RIGHT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
-            "key_right"), InputConstants.KEY_H
-    );
+            "cycle_right"), InputConstants.KEY_H);
     private static final int DEFAULT_SLOTS_DISPLAY_TICKS = 15;
 
     private static int slotsDisplayTicks;
@@ -32,18 +30,21 @@ public class CyclingInputHandler {
 
     public static EventResult onMouseScroll(boolean leftDown, boolean middleDown, boolean rightDown, double horizontalAmount, double verticalAmount) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (!((Player) minecraft.player).isSpectator() &&
+        if (!minecraft.player.isSpectator() &&
                 HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
             double accumulatedScroll = minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollY == 0 ?
                     -minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollX :
                     minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollY;
             double totalScroll = verticalAmount + accumulatedScroll;
-            if (totalScroll > 0.0) {
-                if (cycleSlot(minecraft, minecraft.player, SlotCyclingProvider::cycleSlotBackward)) {
-                    return EventResult.INTERRUPT;
+            boolean invertScrolling = HotbarSlotCycling.CONFIG.get(ClientConfig.class).invertScrolling;
+            if (totalScroll != 0.0) {
+                Predicate<SlotCyclingProvider> cycleAction;
+                if (totalScroll > 0.0 == !invertScrolling) {
+                    cycleAction = SlotCyclingProvider::cycleSlotBackward;
+                } else {
+                    cycleAction = SlotCyclingProvider::cycleSlotForward;
                 }
-            } else if (totalScroll < 0.0) {
-                if (cycleSlot(minecraft, minecraft.player, SlotCyclingProvider::cycleSlotForward)) {
+                if (cycleSlot(minecraft, minecraft.player, cycleAction)) {
                     return EventResult.INTERRUPT;
                 }
             }
@@ -85,8 +86,7 @@ public class CyclingInputHandler {
                 while (i == player.getInventory().selected && options.keyHotbarSlots[i].consumeClick()) {
                     cycleSlot(minecraft,
                             player,
-                            forward ? SlotCyclingProvider::cycleSlotForward : SlotCyclingProvider::cycleSlotBackward
-                    );
+                            forward ? SlotCyclingProvider::cycleSlotForward : SlotCyclingProvider::cycleSlotBackward);
                 }
             }
         }

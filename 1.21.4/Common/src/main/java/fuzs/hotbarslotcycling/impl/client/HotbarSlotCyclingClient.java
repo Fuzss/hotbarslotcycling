@@ -2,6 +2,7 @@ package fuzs.hotbarslotcycling.impl.client;
 
 import fuzs.hotbarslotcycling.api.v1.client.HotbarCyclingProvider;
 import fuzs.hotbarslotcycling.api.v1.client.SlotCyclingProvider;
+import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.client.handler.CyclingInputHandler;
 import fuzs.hotbarslotcycling.impl.client.handler.SlotsRendererHandler;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
@@ -24,14 +25,14 @@ public class HotbarSlotCyclingClient implements ClientModConstructor {
         ClientTickEvents.START.register(CyclingInputHandler::onStartClientTick);
         InputEvents.MOUSE_SCROLL.register(CyclingInputHandler::onMouseScroll);
         if (ModLoaderEnvironment.INSTANCE.getModLoader().isFabricLike()) {
-            RenderGuiLayerEvents.after(RenderGuiLayerEvents.HOTBAR).register(
-                    SlotsRendererHandler::onAfterRenderGuiLayer);
+            RenderGuiLayerEvents.after(RenderGuiLayerEvents.HOTBAR)
+                    .register(SlotsRendererHandler::onAfterRenderGuiLayer);
         }
     }
 
     @Override
     public void onClientSetup() {
-        if (ModLoaderEnvironment.INSTANCE.isDevelopmentEnvironment()) {
+        if (ModLoaderEnvironment.INSTANCE.isDevelopmentEnvironment(HotbarSlotCycling.MOD_ID)) {
             SlotCyclingProvider.registerProvider((Player player) -> {
                 return new HotbarCyclingProvider(player.getInventory());
             });
