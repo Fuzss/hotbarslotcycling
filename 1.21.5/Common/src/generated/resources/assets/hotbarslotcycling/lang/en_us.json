@@ -1,5 +1,5 @@
 {
   "key.categories.hotbarslotcycling": "Hotbar Slot Cycling",
-  "key.key_left": "Cycle Hotbar Slot Left",
-  "key.key_right": "Cycle Hotbar Slot Right"
+  "key.cycle_left": "Cycle Hotbar Slot Left",
+  "key.cycle_right": "Cycle Hotbar Slot Right"
 }

@@ -83,7 +83,7 @@ public class CyclingInputHandler {
             ModifierKey scrollingModifierKey = HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey;
             boolean forward = !scrollingModifierKey.isKey() || !scrollingModifierKey.isActive();
             for (int i = 0; i < options.keyHotbarSlots.length; i++) {
-                while (i == player.getInventory().selected && options.keyHotbarSlots[i].consumeClick()) {
+                while (i == player.getInventory().getSelectedSlot() && options.keyHotbarSlots[i].consumeClick()) {
                     cycleSlot(minecraft,
                             player,
                             forward ? SlotCyclingProvider::cycleSlotForward : SlotCyclingProvider::cycleSlotBackward);

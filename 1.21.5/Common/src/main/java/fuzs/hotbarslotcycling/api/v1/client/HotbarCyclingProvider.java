@@ -10,7 +10,7 @@ public record HotbarCyclingProvider(Inventory inventory) implements SlotCyclingP
 
     @Override
     public ItemStack getSelectedStack() {
-        return this.inventory.getSelected();
+        return this.inventory.getSelectedItem();
     }
 
     @Override
@@ -20,14 +20,15 @@ public record HotbarCyclingProvider(Inventory inventory) implements SlotCyclingP
     }
 
     private int getFilledSlot(boolean forward) {
-        return this.getFilledSlot(this.inventory.selected, forward);
+        return this.getFilledSlot(this.inventory.getSelectedSlot(), forward);
     }
 
     private int getFilledSlot(int selected, boolean forward) {
-        int inventoryRows = this.inventory.items.size() / Inventory.getSelectionSize();
+        int itemsSize = this.inventory.getNonEquipmentItems().size();
+        int inventoryRows = itemsSize / Inventory.getSelectionSize();
         for (int i = 1; i < inventoryRows; i++) {
             int slot = ((i * (forward ? -1 : 1) + inventoryRows) % inventoryRows * Inventory.getSelectionSize() +
-                    selected) % this.inventory.items.size();
+                    selected) % itemsSize;
             if (Inventory.isHotbarSlot(slot) || !this.inventory.getItem(slot).isEmpty()) {
                 return slot;
             }
@@ -66,21 +67,29 @@ public record HotbarCyclingProvider(Inventory inventory) implements SlotCyclingP
         // so Minecraft 1.20.4 introduced a fun limitation where otherSlot can only be a hotbar (or offhand) slot, where previously freely swapping with any other inventory slot was possible
         // so instead of swapping slots directly, we have to use some hotbar slot (in our case simply the corresponding slot for that column) to temporarily put the items
         if (otherSlot >= 0 && otherSlot < Inventory.getSelectionSize()) {
-            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId, slot, otherSlot,
-                    ClickType.SWAP, player
-            );
+            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId,
+                    slot,
+                    otherSlot,
+                    ClickType.SWAP,
+                    player);
         } else {
             // any hotbar slot would do, just a temporary place to put the items since the second slot must be in the hotbar or offhand now
             int hotbarSlot = otherSlot % Inventory.getSelectionSize();
-            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId, slot, hotbarSlot,
-                    ClickType.SWAP, player
-            );
-            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId, otherSlot, hotbarSlot,
-                    ClickType.SWAP, player
-            );
-            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId, slot, hotbarSlot,
-                    ClickType.SWAP, player
-            );
+            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId,
+                    slot,
+                    hotbarSlot,
+                    ClickType.SWAP,
+                    player);
+            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId,
+                    otherSlot,
+                    hotbarSlot,
+                    ClickType.SWAP,
+                    player);
+            minecraft.gameMode.handleInventoryMouseClick(player.containerMenu.containerId,
+                    slot,
+                    hotbarSlot,
+                    ClickType.SWAP,
+                    player);
         }
     }
 
