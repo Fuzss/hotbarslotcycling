@@ -5,14 +5,13 @@ import fuzs.hotbarslotcycling.api.v1.client.SlotCyclingProvider;
 import fuzs.hotbarslotcycling.impl.HotbarSlotCycling;
 import fuzs.hotbarslotcycling.impl.config.ClientConfig;
 import fuzs.puzzleslib.api.client.gui.v2.GuiGraphicsHelper;
-import fuzs.puzzleslib.api.client.gui.v2.GuiHeightHelper;
 import fuzs.puzzleslib.api.core.v1.utility.ResourceLocationHelper;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
@@ -32,11 +31,13 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
 
     private static CyclingSlotsRenderer instance = new SlotsRendererHandler();
 
-    public static void onAfterRenderGuiLayer(Gui gui, GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+    public static void onAfterRenderGuiLayer(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
 
-        if (!gui.minecraft.options.hideGui && gui.minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR) {
+        Minecraft minecraft = Minecraft.getInstance();
 
-            if (gui.minecraft.getCameraEntity() instanceof Player player) {
+        if (!minecraft.options.hideGui && minecraft.gameMode.getPlayerMode() != GameType.SPECTATOR) {
+
+            if (minecraft.getCameraEntity() instanceof Player player) {
 
                 SlotCyclingProvider provider = SlotCyclingProvider.getProvider(player);
                 if (provider != null) {
@@ -49,7 +50,7 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
                                     guiGraphics.guiWidth(),
                                     guiGraphics.guiHeight(),
                                     deltaTracker.getGameTimeDeltaPartialTick(false),
-                                    gui.minecraft.font,
+                                    minecraft.font,
                                     player,
                                     backwardStack,
                                     selectedStack,
@@ -71,8 +72,8 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
     @Override
     public void renderSlots(GuiGraphics guiGraphics, int screenWidth, int screenHeight, float partialTick, Font font, Player player, ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
 
-        if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState ==
-                ClientConfig.SlotsDisplayState.NEVER) {
+        if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState
+                == ClientConfig.SlotsDisplayState.NEVER) {
             return;
         }
         if (!CyclingSlotsRenderer.getSlotsRenderer().testValidStacks(backwardStack, selectedStack, forwardStack)) {
@@ -89,13 +90,13 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
             }
         }
 
-        int posX = screenWidth / 2 +
-                (91 + HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsXOffset) * (renderToRight ? 1 : -1);
-        int posY = screenHeight - getGuiHeightOffset() - HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsYOffset;
+        int posX = screenWidth / 2 + (91 + HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsXOffset) * (
+                renderToRight ? 1 : -1);
+        int posY = screenHeight - HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsYOffset;
         if (HotbarSlotCycling.CONFIG.get(ClientConfig.class).slotsDisplayState == ClientConfig.SlotsDisplayState.KEY) {
             if (CyclingInputHandler.getSlotsDisplayTicks() > 0) {
-                posY += (int) ((screenHeight - posY + 23) *
-                        (1.0F - Math.min(1.0F, (CyclingInputHandler.getSlotsDisplayTicks() - partialTick) / 5.0F)));
+                posY += (int) ((screenHeight - posY + 23) * (1.0F - Math.min(1.0F,
+                        (CyclingInputHandler.getSlotsDisplayTicks() - partialTick) / 5.0F)));
             } else {
                 return;
             }
@@ -121,12 +122,6 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
                         renderToRight);
     }
 
-    private static int getGuiHeightOffset() {
-        Gui gui = Minecraft.getInstance().gui;
-        int guiHeight = Math.max(GuiHeightHelper.getLeftHeight(gui), GuiHeightHelper.getRightHeight(gui));
-        return Math.max(guiHeight - 39, 0);
-    }
-
     @Override
     public boolean testValidStacks(ItemStack backwardStack, ItemStack selectedStack, ItemStack forwardStack) {
         return !backwardStack.isEmpty() && !selectedStack.isEmpty() && !forwardStack.isEmpty();
@@ -138,11 +133,11 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
         if (renderToRight) {
 
             // left slot cycling slot, use right offhand sprite as it lines up
-            guiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_OFFHAND_RIGHT_SPRITE, posX, posY - 23, 29, 24);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_OFFHAND_RIGHT_SPRITE, posX, posY - 23, 29, 24);
             if (renderForwardStack) {
 
                 // right slot cycling slot, use left offhand sprite for better resource pack support in case something is intentionally different?
-                guiGraphics.blitSprite(RenderType::guiTextured,
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                         HOTBAR_OFFHAND_LEFT_SPRITE,
                         posX + 40 + 7,
                         posY - 23,
@@ -152,7 +147,7 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
 
             // center slot cycling slot
             GuiGraphicsHelper.blitTiledSprite(guiGraphics,
-                    RenderType::guiTextured,
+                    RenderPipelines.GUI_TEXTURED,
                     HOTBAR_SPRITE,
                     posX + 27,
                     posY - 22,
@@ -162,7 +157,7 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
                     22);
             // selected hotbar slot overlay
             GuiGraphicsHelper.blitTiledSprite(guiGraphics,
-                    RenderType::guiTextured,
+                    RenderPipelines.GUI_TEXTURED,
                     HOTBAR_SELECTION_SPRITE,
                     posX + 27 - 1,
                     posY - 22 - 1,
@@ -175,7 +170,7 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
             if (renderBackwardStack) {
 
                 // left slot cycling slot, use right offhand sprite as it lines up
-                guiGraphics.blitSprite(RenderType::guiTextured,
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
                         HOTBAR_OFFHAND_RIGHT_SPRITE,
                         posX - 29 - 40 - 7,
                         posY - 23,
@@ -184,10 +179,15 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
             }
 
             // right slot cycling slot, use left offhand sprite for better resource pack support in case something is intentionally different?
-            guiGraphics.blitSprite(RenderType::guiTextured, HOTBAR_OFFHAND_LEFT_SPRITE, posX - 29, posY - 23, 29, 24);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED,
+                    HOTBAR_OFFHAND_LEFT_SPRITE,
+                    posX - 29,
+                    posY - 23,
+                    29,
+                    24);
             // center slot cycling slot
             GuiGraphicsHelper.blitTiledSprite(guiGraphics,
-                    RenderType::guiTextured,
+                    RenderPipelines.GUI_TEXTURED,
                     HOTBAR_SPRITE,
                     posX - 29 - 20,
                     posY - 22,
@@ -197,7 +197,7 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
                     22);
             // selected hotbar slot overlay
             GuiGraphicsHelper.blitTiledSprite(guiGraphics,
-                    RenderType::guiTextured,
+                    RenderPipelines.GUI_TEXTURED,
                     HOTBAR_SELECTION_SPRITE,
                     posX - 29 - 20 - 1,
                     posY - 22 - 1,
@@ -231,27 +231,30 @@ public final class SlotsRendererHandler implements CyclingSlotsRenderer {
     }
 
     @Override
-    public void renderItemInSlot(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack stack) {
+    public void renderItemInSlot(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack itemStack) {
+        float popTime = CyclingInputHandler.getGlobalPopTime() - partialTick;
+        this.renderSlot(guiGraphics, font, posX, posY, player, itemStack, popTime);
+    }
 
-        if (!stack.isEmpty()) {
-
-            float popTime = CyclingInputHandler.getGlobalPopTime() - partialTick;
+    /**
+     * @see Gui#renderSlot(GuiGraphics, int, int, DeltaTracker, Player, ItemStack, int)
+     */
+    private void renderSlot(GuiGraphics guiGraphics, Font font, int x, int y, Player player, ItemStack itemStack, float popTime) {
+        if (!itemStack.isEmpty()) {
             if (popTime > 0.0F) {
-
-                float f1 = 1.0F + popTime / 5.0F;
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(posX + 8, posY + 12, 0.0D);
-                guiGraphics.pose().scale(1.0F / f1, (f1 + 1.0F) / 2.0F, 1.0F);
-                guiGraphics.pose().translate(-(posX + 8), -(posY + 12), 0.0D);
+                float g = 1.0F + popTime / 5.0F;
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().translate(x + 8, y + 12);
+                guiGraphics.pose().scale(1.0F / g, (g + 1.0F) / 2.0F);
+                guiGraphics.pose().translate(-(x + 8), -(y + 12));
             }
 
-            guiGraphics.renderItem(player, stack, posX, posY, 0);
+            guiGraphics.renderItem(player, itemStack, x, y, 0);
             if (popTime > 0.0F) {
-
-                guiGraphics.pose().popPose();
+                guiGraphics.pose().popMatrix();
             }
 
-            guiGraphics.renderItemDecorations(font, stack, posX, posY);
+            guiGraphics.renderItemDecorations(font, itemStack, x, y);
         }
     }
 }

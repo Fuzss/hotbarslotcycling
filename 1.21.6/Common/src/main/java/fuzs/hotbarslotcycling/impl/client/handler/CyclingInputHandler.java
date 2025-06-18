@@ -20,9 +20,9 @@ import java.util.function.Predicate;
 
 public class CyclingInputHandler {
     public static final KeyMapping CYCLE_LEFT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
-            "cycle_left"), InputConstants.KEY_G);
+            "cycle_left"), InputConstants.KEY_H);
     public static final KeyMapping CYCLE_RIGHT_KEY_MAPPING = KeyMappingHelper.registerKeyMapping(HotbarSlotCycling.id(
-            "cycle_right"), InputConstants.KEY_H);
+            "cycle_right"), InputConstants.KEY_J);
     private static final int DEFAULT_SLOTS_DISPLAY_TICKS = 15;
 
     private static int slotsDisplayTicks;
@@ -30,8 +30,8 @@ public class CyclingInputHandler {
 
     public static EventResult onMouseScroll(boolean leftDown, boolean middleDown, boolean rightDown, double horizontalAmount, double verticalAmount) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (!minecraft.player.isSpectator() &&
-                HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
+        if (!minecraft.player.isSpectator()
+                && HotbarSlotCycling.CONFIG.get(ClientConfig.class).scrollingModifierKey.isActive()) {
             double accumulatedScroll = minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollY == 0 ?
                     -minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollX :
                     minecraft.mouseHandler.scrollWheelHandler.accumulatedScrollY;

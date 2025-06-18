@@ -42,7 +42,7 @@ public interface CyclingSlotsRenderer {
     /**
      * Renders an item on the screen.
      */
-    void renderItemInSlot(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack stack);
+    void renderItemInSlot(GuiGraphics guiGraphics, int posX, int posY, float partialTick, Font font, Player player, ItemStack itemStack);
 
     /**
      * Set the currently used {@link CyclingSlotsRenderer} instance, should be called once during mod construction.
