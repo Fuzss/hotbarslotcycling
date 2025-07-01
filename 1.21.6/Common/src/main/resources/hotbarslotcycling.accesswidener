@@ -1,6 +1,0 @@
-accessWidener   v2  named
-accessible  field   net/minecraft/client/renderer/ItemInHandRenderer    mainHandItem    Lnet/minecraft/world/item/ItemStack;
-accessible  field   net/minecraft/client/renderer/ItemInHandRenderer    offHandItem    Lnet/minecraft/world/item/ItemStack;
-accessible  field   net/minecraft/client/MouseHandler   scrollWheelHandler  Lnet/minecraft/client/ScrollWheelHandler;
-accessible  field   net/minecraft/client/ScrollWheelHandler accumulatedScrollX  D
-accessible  field   net/minecraft/client/ScrollWheelHandler accumulatedScrollY  D
