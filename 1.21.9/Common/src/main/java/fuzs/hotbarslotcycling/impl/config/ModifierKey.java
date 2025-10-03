@@ -1,11 +1,15 @@
 package fuzs.hotbarslotcycling.impl.config;
 
-import net.minecraft.client.gui.screens.Screen;
+import fuzs.puzzleslib.api.util.v1.CommonHelper;
 
 import java.util.function.BooleanSupplier;
 
 public enum ModifierKey {
-    DISABLED(() -> false), NONE(() -> true), CONTROL(Screen::hasControlDown), SHIFT(Screen::hasShiftDown), ALT(Screen::hasAltDown);
+    DISABLED(() -> false),
+    NONE(() -> true),
+    CONTROL(CommonHelper::hasControlDown),
+    SHIFT(CommonHelper::hasShiftDown),
+    ALT(CommonHelper::hasAltDown);
 
     private final BooleanSupplier active;
 

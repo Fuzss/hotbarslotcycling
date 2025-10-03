@@ -8,8 +8,8 @@ import fuzs.hotbarslotcycling.impl.client.handler.SlotsRendererHandler;
 import fuzs.puzzleslib.api.client.core.v1.ClientModConstructor;
 import fuzs.puzzleslib.api.client.core.v1.context.GuiLayersContext;
 import fuzs.puzzleslib.api.client.core.v1.context.KeyMappingsContext;
+import fuzs.puzzleslib.api.client.event.v1.ClientInputEvents;
 import fuzs.puzzleslib.api.client.event.v1.ClientTickEvents;
-import fuzs.puzzleslib.api.client.event.v1.InputEvents;
 import fuzs.puzzleslib.api.client.key.v1.KeyActivationContext;
 import fuzs.puzzleslib.api.core.v1.ModLoaderEnvironment;
 import net.minecraft.world.entity.player.Player;
@@ -23,7 +23,7 @@ public class HotbarSlotCyclingClient implements ClientModConstructor {
 
     private static void registerEventHandlers() {
         ClientTickEvents.START.register(CyclingInputHandler::onStartClientTick);
-        InputEvents.MOUSE_SCROLL.register(CyclingInputHandler::onMouseScroll);
+        ClientInputEvents.MOUSE_SCROLL.register(CyclingInputHandler::onMouseScroll);
     }
 
     @Override
