@@ -27,12 +27,14 @@ public record HotbarCyclingProvider(Inventory inventory) implements SlotCyclingP
         int itemsSize = this.inventory.getNonEquipmentItems().size();
         int inventoryRows = itemsSize / Inventory.getSelectionSize();
         for (int i = 1; i < inventoryRows; i++) {
-            int slot = ((i * (forward ? -1 : 1) + inventoryRows) % inventoryRows * Inventory.getSelectionSize() +
-                    selected) % itemsSize;
+            int slot =
+                    ((i * (forward ? -1 : 1) + inventoryRows) % inventoryRows * Inventory.getSelectionSize() + selected)
+                            % itemsSize;
             if (Inventory.isHotbarSlot(slot) || !this.inventory.getItem(slot).isEmpty()) {
                 return slot;
             }
         }
+
         return -1;
     }
 
@@ -56,9 +58,13 @@ public record HotbarCyclingProvider(Inventory inventory) implements SlotCyclingP
                 slot = otherSlot;
             }
             ItemStack itemInHand = this.inventory.getItem(slot);
-            if (!itemInHand.isEmpty()) itemInHand.setPopTime(5);
+            if (!itemInHand.isEmpty()) {
+                itemInHand.setPopTime(5);
+            }
+
             return true;
         }
+
         return false;
     }
 
